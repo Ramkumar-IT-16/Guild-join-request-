@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Guild System</title>
+  <style>
+
+    body {
+      background: #0a0a0a;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+    }
+
+    h1 { color: orange; }
+
+    button {
+      padding: 12px;
+      margin: 10px;
+      background: orange;
+      border: none;
+      cursor: pointer;
+    }
+
+    input {
+      padding: 10px;
+      margin: 8px;
+      background: black;
+      border: 1px solid orange;
+      color: white;
+    }
+
+    .hidden { display: none; }
+
+    .box {
+      border: 1px solid orange;
+      margin: 10px;
+      padding: 10px;
+    }
+
+    .success {
+      color: lightgreen;
+      margin-top: 10px;
+      font-size: 16px;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home">
+  <h1>🔥 Guild Portal</h1>
+  <button onclick="showPage('member')">➕ New Member</button>
+  <button onclick="showPage('adminLogin')">🔐 Admin Login</button>
+</div>
+
+<!-- MEMBER PAGE -->
+<div id="member" class="hidden">
+  <h1>Join Guild</h1>
+
+  <input id="name" placeholder="Enter Name"><br>
+  <input id="id" placeholder="Enter ID"><br>
+
+  <button onclick="sendRequest()">Submit</button>
+
+  <!-- SUCCESS MESSAGE -->
+  <p id="successMsg" class="success"></p>
+
+  <button onclick="goHome()">⬅ Back</button>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="adminLogin" class="hidden">
+  <h1>Admin Login</h1>
+
+  <input id="adminId" placeholder="ID"><br>
+  <input id="adminPass" type="password" placeholder="Password"><br>
+
+  <button onclick="login()">Login</button><br>
+  <button onclick="goHome()">⬅ Back</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="hidden">
+  <h1>👑 Admin Panel</h1>
+
+  <h2>📥 Requests</h2>
+  <div id="requests"></div>
+
+  <h2>👑 Members</h2>
+  <div id="members"></div>
+
+  <button onclick="logout()">Logout</button>
+</div>
+
+<script>
+
+// 🔐 OWNER LOGIN
+const OWNER_ID = "tvkqueen";
+const OWNER_PASS = "1478";
+
+// DATA
+let requests = JSON.parse(localStorage.getItem("requests")) || [];
+let members = JSON.parse(localStorage.getItem("members")) || [];
+
+// PAGE SWITCH
+function showPage(page) {
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("member").classList.add("hidden");
+  document.getElementById("adminLogin").classList.add("hidden");
+  document.getElementById("adminPanel").classList.add("hidden");
+
+  document.getElementById(page).classList.remove("hidden");
+}
+
+function goHome() {
+  showPage("home");
+}
+
+// SEND REQUEST
+function sendRequest() {
+  const name = document.getElementById("name").value;
+  const id = document.getElementById("id").value;
+  const msg = document.getElementById("successMsg");
+
+  if (!name || !id) {
+    alert("Enter details");
+    return;
+  }
+
+  requests.push({
+    name,
+    id,
+    time: new Date().toLocaleString()
+  });
+
+  save();
+
+  // ✅ SUCCESS MESSAGE
+  msg.innerText = "✨ Thanks for appreciation joining in our guild. Your profile sended for admin profile.";
+
+  // CLEAR INPUT
+  document.getElementById("name").value = "";
+  document.getElementById("id").value = "";
+}
+
+// LOGIN
+function login() {
+  const id = document.getElementById("adminId").value;
+  const pass = document.getElementById("adminPass").value;
+
+  if (id === OWNER_ID && pass === OWNER_PASS) {
+    showPage("adminPanel");
+    render();
+  } else {
+    alert("Wrong ID or Password ❌");
+  }
+}
+
+// LOGOUT
+function logout() {
+  goHome();
+}
+
+// APPROVE
+function approve(index) {
+  const user = requests[index];
+
+  members.push(user);
+  requests.splice(index, 1);
+
+  save();
+  render();
+}
+
+// REJECT
+function reject(index) {
+  requests.splice(index, 1);
+  save();
+  render();
+}
+
+// SAVE
+function save() {
+  localStorage.setItem("requests", JSON.stringify(requests));
+  localStorage.setItem("members", JSON.stringify(members));
+}
+
+// RENDER ADMIN DATA
+function render() {
+
+  const reqBox = document.getElementById("requests");
+  reqBox.innerHTML = "";
+
+  requests.forEach((r, i) => {
+    reqBox.innerHTML += `
+      <div class="box">
+        <h3>${r.name}</h3>
+        <p>ID: ${r.id}</p>
+        <p>${r.time}</p>
+        <button onclick="approve(${i})">Approve</button>
+        <button onclick="reject(${i})">Reject</button>
+      </div>
+    `;
+  });
+
+  const memBox = document.getElementById("members");
+  memBox.innerHTML = "";
+
+  members.forEach((m) => {
+    memBox.innerHTML += `
+      <div class="box">
+        <h3>${m.name}</h3>
+        <p>ID: ${m.id}</p>
+        <p>Joined: ${m.time}</p>
+      </div>
+    `;
+  });
+}
+
+</script>
+
+</body>
+</html>
